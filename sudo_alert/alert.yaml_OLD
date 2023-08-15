@@ -1,0 +1,58 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/31/23
+# Date Changed:             1/31/23
+#
+# Description:              Deploys a script to target machine that allows detection of unauthorized sudo attempts
+#                           It does this by aliasing the sudo command to the script
+#
+# Execute Instructions:     ansible-playbook alert.yaml -kK               
+
+- name: alert
+  hosts: CS_Desktop
+  become: yes
+
+  tasks:
+
+  - name: Install shc
+    package:
+        name: shc
+        state: present
+
+  - name: Create destination directory
+    file:
+      path: /opt/scripts
+      state: directory
+      owner: root
+      mode: 0755
+
+  - name: Copy script to directory
+    copy:
+      src: ./alert.sh
+      dest: /opt/scripts/alert.sh
+      owner: root
+      mode: 0755
+
+  - name: Compile script using shc
+    shell: shc -f /opt/scripts/alert.sh
+
+  - name: Configure file permission for alert.sh
+    file:
+        path: /opt/scripts/alert.sh
+        mode: 711
+
+  - name: Configure file permission for alert.sh.x
+    file:
+        path: /opt/scripts/alert.sh.x
+        mode: 755
+
+  - name: Append line to /etc/bash.bashrc
+    lineinfile:
+      path: /etc/bash.bashrc
+      line: "alias sudo='/opt/scripts/alert.sh.x'"
+      state: present 
+
+  - name: Uninstall shc
+    package:
+        name: shc
+        state: absent

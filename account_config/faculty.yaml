@@ -1,0 +1,50 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/17/23
+# Date Changed:             8/9/23
+#
+# Description:              Adds faculty to AD and creates their directories on snoopy
+#
+# Execute Instructions:     ansible-playbook faculty.yaml -kK
+
+- name: add users to AD 
+  hosts: 10.150.100.3
+  remote_user: Administrator
+  vars:
+    ansible_shell_type: cmd
+
+  tasks:
+      - name: Copy .csv file with user information
+        win_copy:
+            src: newUsers.csv
+            dest: C:\Users\Administrator\Desktop\WSEADMIN_SCRIPTS\Create_Users
+
+      - name: Execute shell script to add users
+        win_shell: .\CreateFaculty.ps1
+        args:
+            chdir: C:\Users\Administrator\Desktop\WSEADMIN_SCRIPTS\Create_Users
+
+      - name: copy SID's file from netsvc to control
+        fetch:
+            src: C:\Users\Administrator\Desktop\WSEADMIN_SCRIPTS\Create_Users\ImportSIDs.csv
+            dest: /tmp/ImportSIDs.csv
+            flat: yes
+  
+- name: Create user directories on snoopy
+  hosts: snoopy
+  remote_user: wseadmin
+  become: yes
+  vars:
+      remote_tmp: /tmp
+      ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+      - name: copy SID's file from control to snoopy
+        copy:
+            src: /tmp/ImportSIDs.csv
+            dest: /root/admin_stuff/ad_admin
+
+      - name: generate directories
+        command: ./create_faculty.sh ImportSIDs.csv
+        args:
+            chdir: /root/admin_stuff/ad_admin

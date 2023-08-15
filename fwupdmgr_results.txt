@@ -1,0 +1,8 @@
+ bali: 
+ Devices with no available firmware updates: 
+ • Alienware Pro Gaming Keyboard AW768
+ • System Firmware
+ • UEFI dbx
+Devices with the latest available firmware version:
+ • PC601 NVMe SK hynix 256GB 
+ 

@@ -1,0 +1,72 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/17/23
+# Date Changed:             1/17/23
+#
+# Description:              Installs and configures Docker on a target machine
+#                           The following packages are removed from the system:
+#                               - docker
+#                               - docker-engine
+#                               - docker.io
+#                               - containerd
+#                               - runc
+#                           The following packages are installed on the system:
+#                               - docker-ce
+#                               - docker-ce-cli
+#                               - containerd.io
+#                               - docker-compose-plugin
+#                   
+# Execute Instructions:     ansible-playbook docker.yaml -kK
+
+- name: Install and configure Docker
+  hosts: math, physics
+  become: yes
+
+  tasks:
+      - name: remove outdated docker packages
+        package:
+            name:
+                - docker
+                - docker-engine
+                - docker.io
+                - containerd
+                - runc
+            state: absent
+
+      - name: create keyrings directory
+        file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: '0755'
+
+      - name: delete old docker.gpg key
+        file:
+            path: /etc/apt/keyrings/docker.gpg
+            state: absent
+
+      - name: add new docker.gpg key
+        shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        args:
+            warn: false
+
+      - name: setup the docker repository
+        shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+      - name: update apt package index
+        apt: 
+            update_cache: yes
+
+      - name: install relevant docker packages
+        package:
+            name:
+                - docker-ce
+                - docker-ce-cli
+                - containerd.io
+                - docker-compose-plugin
+            state: latest
+
+      - name: start the docker service
+        service:
+            name: docker
+            state: started
+

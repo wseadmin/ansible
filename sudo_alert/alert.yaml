@@ -1,0 +1,35 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/31/23
+# Date Changed:             2/16/23
+#
+# Description:              Deploys a modification to the bash.bashrc file that overloads sudo
+#                           Don't ask questions, it works and it's safe (?)
+#
+# Execute Instructions:     ansible-playbook alert.yaml -kK
+
+- name: alert
+  hosts: halo
+  become: yes
+
+  tasks:
+
+      - name: append lines to end of bash.bashrc
+        blockinfile:
+            path: /etc/bash.bashrc
+            marker: "# {mark}-ALERT DO NOT REMOVE THIS COMMENT"
+            block: |
+                sudo () {
+                  groups $(whoami) | grep -qw 'sudoers' || groups $(whoami) | grep -qw 'sudo' || groups $(whoami) | grep -qw 'root'
+                  res=$?
+                  if [ $res -eq 1 ]
+                  then
+                      url=$(echo "aHR0cHM6Ly9kaXNjb3JkYXBwLmNvbS9hcGkvd2ViaG9va3MvMTA2OTk3MTYxOTE0NzE1NzU4NS9kRzUyUWRRM3Z6cW1PODNFdWRrd0lad1hOWTY5SkJzaUFULXJrMlA4LVBKREdoZWNfNU42YXN2RExaNVFrcS1zY1ZWYwo=" | base64 -d)
+                      msg="@here Unauthorized sudo attempt!\nUser: $(whoami)\nCommand: sudo $@\nMachine: $(hostname)"
+                      curl -H "Content-Type: application/json" -X POST -d "{\"content\":\"$msg\"}" $url
+                      echo "$(whoami) does not have permission to run sudo on $(hostname). The WSOE System Administrators have been alerted."
+                  else
+                      # Run the original sudo command
+                      command sudo "$@"
+                  fi
+                }

@@ -1,0 +1,19 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/17/23
+# Date Changed:             1/17/23
+#
+# Description:              Remotely reboot a target machine
+#                           Specify the host/group in the command line
+#
+# Execute Instructions:     ansible-playbook reboot.yaml -kK
+
+- name: reboot PC
+  hosts: Classroom_115
+  become: yes
+
+  tasks:
+      - name: reboot PC
+        reboot:
+            reboot_timeout: 1
+        ignore_errors: true

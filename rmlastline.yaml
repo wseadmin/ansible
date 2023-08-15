@@ -1,0 +1,27 @@
+---
+# Author:                   ChatGPT
+# Date Created:             2/01/23
+# Date Changed:             2/01/23
+#
+# Description:              foo 
+#
+# Execute Instructions:     ansible-playbook                   
+
+- name: remove last line of /etc/bash.bashrc
+  hosts: trinidad
+  become: yes
+
+  tasks:
+    - name: Read the file content into a variable
+      register: file_content
+      command: cat /etc/bash.bashrc
+          
+    - name: Remove the specified line from the file
+      command: |
+        tmp_file=$(mktemp)
+        for line in "{{ file_content.stdout_lines }}"; do
+          if [ "$line" != "alias sudo='/opt/scripts/alert.sh.x'" ]; then
+            echo "$line" >> "$tmp_file"
+          fi
+        done
+        mv "$tmp_file" /etc/bash.bashrc

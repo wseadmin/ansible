@@ -1,0 +1,63 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/17/23
+# Date Changed:             1/17/23
+#
+# Description:              connect a machine to our AD     
+#                           this script uses the cscadmin account
+#
+# Execute Instructions:     ansible-playbook integrate.yaml -kK --ask-vault-pass
+
+- name: connect machine to AD
+  hosts: jade #Change which host you want to join AD here
+  become: yes
+  vars:
+      ad_pass: !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                31363139383865333339323134626661356366636165626534623838303162316630343438623935
+                6435613662376637336564333834313734313631306134650a356139633366336532343861646536
+                61323336373864356466623637396363336336633864336363323934373765383434393764373063
+                3233666563326332300a623139333032393562306336373666383866363835343830306334383433
+                3464
+  
+  tasks:
+      - name: install required packages
+        apt:
+            pkg:
+            - realmd
+            - sssd-tools
+            - sssd
+            - libnss-sss
+            - libpam-sss
+            - adcli
+            - samba-common-bin
+
+      - name: realm join
+        shell: echo {{ ad_pass }} | realm join -U FogServiceAccount wsoe-netsvc.wsoedc.highpoint.edu
+
+      - name: stop sssd service
+        service:
+            name: sssd
+            state: stopped
+
+      - name: invalidate cached entries
+        shell: sss_cache -E
+
+      - name: remove content in /var/lib/sss/{mc,db}/
+        file:
+            path: /var/lib/sss/{mc,db}/*
+            state: absent
+
+      - name: copy sssd.conf
+        copy:
+            src: sssd.conf
+            dest: /etc/sssd/sssd.conf
+            owner: root
+            group: root
+            mode: '0600'
+
+      - name: start sssd service
+        service:
+            name: sssd
+            state: started
+            

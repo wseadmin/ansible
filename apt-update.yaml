@@ -1,0 +1,32 @@
+# Author:                   Tyler Percy
+# Date Created:             1/17/23
+# Date Changed:             1/17/23
+#
+# Description:              Used to fully upgrade ubuntu PC's
+#                           Functionally similar to 'apt update && apt upgrade && apt autoremove && reboot
+#
+# Execute Instructions:     ansible-playbook apt-update.yaml -kK
+
+---
+- name: update and upgrade PC's
+  hosts: Classroom_139, Classroom_147, Classroom_149, Classroom_115
+  become: yes
+
+  tasks:
+      - name: update
+        apt:
+            update_cache: yes
+
+      - name: upgrade
+        apt:
+            upgrade: yes
+
+
+      - name: autoremove
+        apt:
+            autoremove: True
+
+      - name: reboot
+        reboot:
+            reboot_timeout: 1
+        ignore_errors: true

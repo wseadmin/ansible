@@ -1,0 +1,15 @@
+---
+# Author:                   Author Name
+# Date Created:             M/DD/YY
+# Date Changed:             M/DD/YY
+#
+# Description:              foo 
+#
+# Execute Instructions:     ansible-playbook                   
+
+- name: 
+  hosts: 
+  become: yes
+
+  tasks:
+      - name: 

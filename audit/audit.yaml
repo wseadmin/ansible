@@ -1,0 +1,55 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/17/23
+# Date Changed:             1/17/23
+#
+# Description:              Enables bash command auditing of the target machine
+#                           Promtail is utilized to send logs from the target machine to grafana-loki
+#                           Two files, bash.bashrc and bash.conf are replaced on the target machine
+#
+# Execute Instructions:     ansible-playbook audit.yaml -kK
+
+
+- name: Allow bash command auditing of target
+  hosts: math, physics
+  become: yes
+
+  tasks:
+      - name: copy promtail docker container to target
+        copy:
+            src: ~/Playbooks/audit/promtail
+            dest: /root
+
+      - name: start the promtail docker container
+        shell: |
+            cd /root/promtail
+            docker compose up -d
+
+      - name: Copy updated bash.bashrc file to /etc
+        copy:
+            src: ~/Playbooks/audit/bash.bashrc
+            dest: /etc
+            owner: "0"
+            group: "0"
+            mode: "0644"
+
+      - name: Copy updated rsyslog.conf to /etc
+        copy:
+          src: ~/Playbooks/audit/rsyslog.conf
+          dest: /etc
+          owner: "0"
+          group: "0"
+          mode: "0644"
+
+      - name: Copy updated bash.conf file to /etc/rsyslog.d
+        copy:
+            src: ~/Playbooks/audit/bash.conf
+            dest: /etc/rsyslog.d
+            owner: "0"
+            group: "0"
+            mode: "0644"
+
+      - name: restart syslog
+        ansible.builtin.service:
+            name: rsyslog
+            state: restarted

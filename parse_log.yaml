@@ -1,0 +1,18 @@
+---
+- name: Parse syslog for a specific user
+  # Specify the host or group of hosts to run the playbook against
+  hosts: all
+  # Run the playbook with elevated privileges
+  become: yes
+  
+  tasks:
+  - name: Get log entries for specific user
+    # Use the shell module to run a command that filters the syslog for the specified user
+    shell: |
+      grep "{{ username }}" /var/log/syslog
+    register: syslog_entries
+    
+  - name: Display log entries
+    # Use the debug module to display the filtered syslog entries
+    debug:
+      var: syslog_entries.stdout_lines

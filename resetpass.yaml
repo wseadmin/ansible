@@ -1,0 +1,20 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             1/18/23
+# Date Changed:             1/18/23
+#
+# Description:              This playbook resets a users password in AD
+
+# Execute Instructions:     ansible-playbook resetpass.yml -kK -e "username=<USERNAME>"
+                   
+- name: Reset user password
+  hosts: 10.150.100.3
+  remote_user: Administrator
+  vars:
+      ansible_shell_type: cmd
+
+  tasks:
+      - name: run reset.ps1 on remote host to reset password
+        win_shell: .\reset.ps1 {{ username }} 
+        args:
+            chdir: C:\Users\Administrator\Desktop\WSEADMIN_SCRIPTS\Reset_Password

@@ -1,0 +1,16 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             8/9/23
+# Date Changed:             8/9/23
+#
+# Description:              Disables sleep and hibernation on machines 
+#
+# Execute Instructions:     ansible-playbook disablesleep.yaml -kK
+
+- name: Disable Sleep 
+  hosts: Classroom_147
+  become: yes
+
+  tasks:
+      - name: disable sleep
+        shell: systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target

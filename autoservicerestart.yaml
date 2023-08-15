@@ -1,0 +1,22 @@
+---
+# Author:                   Tyler Percy
+# Date Created:             8/9/23
+# Date Changed:             8/9/23
+#
+# Description:              Automatically restarts services when prompted during ubuntu 22.04 updates
+#
+# Execute Instructions:     ansible-playbook autoservicerestart.yaml -kK                   
+
+- name: auto restart service
+  hosts: all, !windows, !sloth, !pride 
+  become: yes
+
+  tasks:
+      - name: install needrestart package
+        package:
+          name: needrestart
+          state: present
+
+      - name: add flag to automatically restart services upon update
+        shell: sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+

@@ -1,0 +1,18 @@
+---
+# Author:                   Author Name
+# Date Created:             M/DD/YY
+# Date Changed:             M/DD/YY
+#
+# Description:              foo 
+#
+# Execute Instructions:     ansible-playbook                   
+
+- name: 
+  hosts: Classroom_115, Classroom_139, Classroom_147, Classroom_149 
+  become: yes
+
+  tasks:
+      - name: restart docker
+        service:
+          name: docker
+          state: restarted

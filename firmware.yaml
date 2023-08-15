@@ -1,0 +1,42 @@
+# Author:                   Tyler Percy
+# Date Created:             6/05/23
+# Date Changed:             6/05/23
+#
+# Description:              Checks if firmware is out of date on targets and outputs the results to a file on the local machine
+#
+# Execute Instructions:     ansible-playbook -kK firmware.yaml  
+
+- name: Check if firmware is out of date
+  hosts: halo, bali
+  become: yes
+
+  tasks:
+      - name: delete old results file
+        file:
+          path: ./fwupdmgr_results.txt
+          state: absent
+        run_once: true
+        delegate_to: localhost
+
+      - name: run fwupdmgr command
+        shell: fwupdmgr update
+        ignore_errors: yes
+        register: fwupdmgr
+
+          # - debug: 
+          #  var: fwupdmgr.stderr
+
+      - name: create output file
+        file:
+          path: ./fwupdmgr_results.txt
+          state: touch
+          owner: '0'
+          group: '0'
+          mode: '0644'
+        delegate_to: localhost
+
+      - name: copy output to local
+        lineinfile:
+          path: "./fwupdmgr_results.txt"
+          line: " {{inventory_hostname }}: \n {{ fwupdmgr.stderr }} \n "
+        delegate_to: localhost
